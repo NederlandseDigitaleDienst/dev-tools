@@ -65,7 +65,13 @@ impl Paths {
 pub fn workspace_id(workspace: &Path) -> String {
     let path = std::fs::canonicalize(workspace).unwrap_or_else(|_| workspace.to_path_buf());
     let digest = Sha256::digest(path.to_string_lossy().as_bytes());
-    digest.iter().take(6).map(|b| format!("{b:02x}")).collect()
+    hex(&digest[..6])
+}
+
+/// Bytes as lowercase hex. Written out rather than `{:x}` on a digest, which
+/// sha2 0.11 no longer implements.
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
 /// What the cached index is worth right now.
@@ -126,7 +132,7 @@ pub fn file_hashes(workspace: &Path) -> std::io::Result<BTreeMap<String, String>
         let bytes = std::fs::read(workspace.join(&rel))?;
         out.insert(
             rel.to_string_lossy().replace('\\', "/"),
-            format!("{:x}", Sha256::digest(&bytes)),
+            hex(&Sha256::digest(&bytes)),
         );
     }
     Ok(out)
@@ -155,7 +161,7 @@ pub fn manifest(workspace: &Path, ra_version: &str) -> std::io::Result<Manifest>
         h.update(b"\n");
     }
     Ok(Manifest {
-        key: format!("{:x}", h.finalize()),
+        key: hex(&h.finalize()),
         files,
     })
 }
