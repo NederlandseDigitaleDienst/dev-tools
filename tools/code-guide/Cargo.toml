@@ -30,7 +30,7 @@ cargo_metadata = "0.23"
 syn = { version = "3", features = ["full", "visit", "parsing"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
-sha2 = "0.10"
+sha2 = "0.11"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 walkdir = "2"
