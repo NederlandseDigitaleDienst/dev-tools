@@ -25,7 +25,8 @@ use crate::source::Sources;
 pub struct CrateInput {
     /// The cargo package name, as it appears in index symbols.
     pub package: String,
-    /// Short name used in the guide: `engine` for `regelrecht-engine`.
+    /// Short name used in the guide: `engine` for `acme-engine`, the prefix all
+    /// crate names share dropped.
     pub name: String,
     /// Directory relative to the workspace root, `/`-separated.
     pub dir: String,
@@ -104,7 +105,7 @@ pub struct TypeItem {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Function {
-    /// Unique and readable: `engine::service::LawExecutionService::evaluate_law`,
+    /// Unique and readable: `engine::service::Service::evaluate`,
     /// with `@Trait` after the name for a trait implementation's method.
     pub id: String,
     pub krate: String,
@@ -678,7 +679,7 @@ mod tests {
     use protobuf::{EnumOrUnknown, MessageField};
     use scip::types::{Document, Occurrence, Signature, SymbolInformation};
 
-    const PKG: &str = "regelrecht-x";
+    const PKG: &str = "acme-x";
 
     fn sym(desc: &str) -> String {
         format!("rust-analyzer cargo {PKG} 0.1.0 {desc}")

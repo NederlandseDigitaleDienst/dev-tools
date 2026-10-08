@@ -1,0 +1,5 @@
+# Tests unwrap, expect and panic: that is how a test reports a failure, and a
+# `?`-returning test hides the reason (the `rust-testing` skill).
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true

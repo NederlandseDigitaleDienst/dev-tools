@@ -1,0 +1,39 @@
+version = 1
+
+# Standaard: code en tekst in deze repository vallen onder de EUPL-1.2.
+#
+# De lijst noemt bestandstypes, geen "**". Een beeld, een lettertype of een
+# bestandstype dat hier niet staat krijgt daardoor geen licentie vanzelf:
+# `reuse lint` faalt tot het bestand hieronder een eigen regel heeft. Dat is de
+# bedoeling. Van een logo of lettertype is de rechthebbende zelden dezelfde als
+# die van de code eromheen, en dat moet iemand opzoeken, niet aannemen.
+#
+# Let op: het ontwerpsysteem (@nldd/design-system) bevat de lettertypes van de
+# rijkshuisstijl (RijksSansWeb), waarop een auteursrechtelijk voorbehoud van de
+# Staat rust (Stcrt. 2008, nr. 115). Ze komen alleen in gebouwde uitvoer
+# terecht (`dist/`), die niet in deze repository staat. Wie gebouwde uitvoer
+# publiceert (een release met de UI erin), regelt dat eerst; zie README.md.
+[[annotations]]
+path = [
+  "**.css",
+  "**.html",
+  "**.js",
+  "**.json",
+  "**.lock",
+  "**.md",
+  "**.mjs",
+  "**.rs",
+  "**.sh",
+  "**.toml",
+  "**.ts",
+  "**.txt",
+  "**.vue",
+  "**.yaml",
+  "**.yml",
+  "**CODEOWNERS",
+  "**justfile",
+  "**.gitignore",
+  "**.npmrc",
+]
+SPDX-FileCopyrightText = "Staat der Nederlanden (Ministerie van Economische Zaken en Klimaat)"
+SPDX-License-Identifier = "EUPL-1.2"

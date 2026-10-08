@@ -8,7 +8,7 @@
 //! same inputs produce a byte-identical index, so a cached index whose key
 //! matches is as good as a fresh one.
 //!
-//! A run takes about a minute and several GB of memory for this workspace, so it
+//! A run takes about a minute and several GB of memory for a large workspace, so it
 //! only runs on request; the server reports a stale or missing index and says
 //! which command rebuilds it.
 
@@ -19,21 +19,22 @@ use std::process::Command;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
-/// The configuration rust-analyzer indexes with. `features: "all"` matters: the
-/// engine's `wasm` module only exists with its feature on, and without it every
-/// call made from there is missing from the index.
+/// The configuration rust-analyzer indexes with. `features: "all"` matters: a
+/// module behind a Cargo feature (a `wasm` binding, say) only exists with that
+/// feature on, and without it every call made from there is missing.
 pub const RA_CONFIG: &str =
     r#"{"cargo":{"features":"all","buildScripts":{"enable":true}},"procMacro":{"enable":true}}"#;
 
-/// The command that rebuilds the index, as the app shows it.
-pub const REBUILD_COMMAND: &str = "just code-guide-index";
+/// The command that rebuilds the index, as the app shows it: the tool's recipe,
+/// run from the workspace's directory (see README.md).
+pub fn rebuild_command() -> String {
+    format!("just -f {}/justfile index", env!("CARGO_MANIFEST_DIR"))
+}
 
 /// Where the workspace and the cached index live.
 #[derive(Debug, Clone)]
 pub struct Paths {
-    /// The repository root (the parent of `packages/`).
-    pub repo_root: PathBuf,
-    /// The cargo workspace root, `packages/`. rust-analyzer indexes this, and
+    /// The cargo workspace root. rust-analyzer indexes this, and
     /// paths in the index are relative to it.
     pub workspace: PathBuf,
     /// `<target dir>/code-guide/<workspace id>/index.scip`; see [`workspace_id`].
@@ -48,12 +49,7 @@ pub struct Paths {
 impl Paths {
     pub fn new(workspace: PathBuf, target_dir: &Path) -> Self {
         let dir = target_dir.join("code-guide").join(workspace_id(&workspace));
-        let repo_root = workspace
-            .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| workspace.clone());
         Self {
-            repo_root,
             workspace,
             index_file: dir.join("index.scip"),
             key_file: dir.join("index.json"),
@@ -98,10 +94,6 @@ fn is_pruned(name: &str) -> bool {
     matches!(name, "target" | "node_modules" | ".git" | "dist" | ".cargo")
 }
 
-/// This tool's own crate: rust-analyzer indexes it, but the guide leaves it out
-/// (`workspace.rs`), so editing the guide must not make the index stale.
-const OWN_DIR: &str = "code-guide";
-
 /// The files the key is computed over, sorted, relative to the workspace.
 pub fn inputs(workspace: &Path) -> Vec<PathBuf> {
     let mut out: Vec<PathBuf> = WalkDir::new(workspace)
@@ -112,7 +104,7 @@ pub fn inputs(workspace: &Path) -> Vec<PathBuf> {
         .filter_map(Result::ok)
         .filter(|e| e.file_type().is_file())
         .filter_map(|e| e.path().strip_prefix(workspace).ok().map(Path::to_path_buf))
-        .filter(|rel| is_input(rel) && !rel.starts_with(OWN_DIR))
+        .filter(|rel| is_input(rel))
         .collect();
     out.sort();
     out
@@ -347,11 +339,13 @@ mod tests {
     }
 
     #[test]
-    fn editing_the_guide_itself_does_not_change_the_key() {
+    fn every_crate_of_the_workspace_counts_whatever_its_folder_is_called() {
+        // The guide is no member of the workspace it describes, so no folder is
+        // left out: one named like the tool is as much an input as any other.
         let d = workspace();
         let k1 = cache_key(d.path(), "ra").unwrap();
         d.write("code-guide/src/main.rs", "fn main() {}\n");
-        assert_eq!(k1, cache_key(d.path(), "ra").unwrap());
+        assert_ne!(k1, cache_key(d.path(), "ra").unwrap());
     }
 
     #[test]

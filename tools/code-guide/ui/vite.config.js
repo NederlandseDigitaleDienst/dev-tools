@@ -22,7 +22,8 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    host: '0.0.0.0',
+    // Local only, like the server: it proxies the API that serves the source.
+    host: '127.0.0.1',
     port: 7191,
     proxy: {
       '/api': { target: API_TARGET, changeOrigin: true },

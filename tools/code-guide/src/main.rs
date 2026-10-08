@@ -1,5 +1,5 @@
-//! `code-guide` — a guide to the regelrecht Rust workspace, layered by the
-//! calls between its functions as rust-analyzer resolves them.
+//! `code-guide` — a guide to a Rust workspace, layered by the calls between its
+//! functions as rust-analyzer resolves them.
 //!
 //! ```text
 //! code-guide index [--force] [--manifest-path <p>]   build the cached index
@@ -7,8 +7,8 @@
 //! code-guide stats [--manifest-path <p>]             what the index yields
 //! ```
 //!
-//! Run from `packages/` (as the `just code-guide*` recipes do) so cargo finds
-//! the workspace. See README.md.
+//! Run it inside the workspace to describe, or point `--manifest-path` at that
+//! workspace's `Cargo.toml`. See README.md.
 
 mod index;
 mod layers;
@@ -31,7 +31,7 @@ pub fn build_model(ws: &workspace::Workspace) -> Result<model::Model, String> {
         format!(
             "no index at {} ({e}); run `{}`",
             ws.paths.index_file.display(),
-            index::REBUILD_COMMAND
+            index::rebuild_command()
         )
     })?;
     let index = scip::types::Index::parse_from_bytes(&bytes)
@@ -42,7 +42,7 @@ pub fn build_model(ws: &workspace::Workspace) -> Result<model::Model, String> {
         format!(
             "the index at {} is incomplete; run `{} --force`",
             ws.paths.index_file.display(),
-            index::REBUILD_COMMAND
+            index::rebuild_command()
         )
     };
     let snapshot = std::fs::read_to_string(&ws.paths.sources_file).map_err(|_| incomplete())?;

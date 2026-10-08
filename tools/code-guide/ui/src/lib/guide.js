@@ -44,8 +44,8 @@ export function segmentToModule(segment) {
 
 /**
  * Addresses: `#/` (all crates), `#/engine` (a crate), `#/engine/service` (a
- * module), `#/engine/service/LawExecutionService` (a type or function) and
- * `…/evaluate_law` (a method, by its key). After `?`: `view=graph` with the
+ * module), `#/engine/service/Service` (a type or function) and
+ * `…/evaluate` (a method, by its key). After `?`: `view=graph` with the
  * graph's options ({@link GRAPH_OPTIONS}), and `source=wide`, each left out
  * when it is the default.
  */

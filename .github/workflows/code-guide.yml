@@ -1,0 +1,90 @@
+name: code-guide
+
+# Runs only for changes to this tool (and this workflow). Every step calls a
+# recipe from tools/code-guide/justfile, the same commands a developer runs.
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/code-guide/**
+      - .github/workflows/code-guide.yml
+  pull_request:
+    paths:
+      - tools/code-guide/**
+      - .github/workflows/code-guide.yml
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: tools/code-guide
+
+jobs:
+  check:
+    name: Lint, test and licences
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3  # v4.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/code-guide/ui/package-lock.json
+      - name: Rust toolchain (from rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tools/code-guide/target
+          key: ${{ runner.os }}-code-guide-${{ hashFiles('tools/code-guide/Cargo.lock', 'tools/code-guide/rust-toolchain.toml') }}
+          restore-keys: ${{ runner.os }}-code-guide-
+      - name: Install cargo-deny
+        working-directory: .
+        run: |
+          CARGO_DENY_VERSION="0.19.0"
+          CARGO_DENY_SHA256="0e8c2aa59128612c90d9e09c02204e912f29a5b8d9a64671b94608cbe09e064f"
+          curl -sSL "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/cargo-deny-${CARGO_DENY_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+            -o /tmp/cargo-deny.tar.gz
+          echo "${CARGO_DENY_SHA256}  /tmp/cargo-deny.tar.gz" | sha256sum -c -
+          tar -xz --strip-components=1 -C /usr/local/bin \
+            -f /tmp/cargo-deny.tar.gz \
+            "cargo-deny-${CARGO_DENY_VERSION}-x86_64-unknown-linux-musl/cargo-deny"
+      - run: just lint
+      - run: just test
+      - run: just deny
+      - run: just build
+
+  # The tool reads the code of another repository. This checks that it still
+  # indexes a real workspace end to end: RegelRecht, checked out next to it.
+  index-a-real-workspace:
+    name: Index a real workspace
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: MinBZK/regelrecht
+          path: target-workspace
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3  # v4.0.0
+      - name: Rust toolchain with rust-analyzer (from rust-toolchain.toml)
+        working-directory: tools/code-guide
+        run: rustup show active-toolchain || rustup toolchain install
+      # RegelRecht links with mold on x86_64 Linux (its .cargo/config.toml), and
+      # rust-analyzer builds its build scripts and proc macros with that setting.
+      - name: Linker the indexed workspace needs
+        run: sudo apt-get update && sudo apt-get install -y mold
+      # Both recipes run from the tool's folder (its toolchain, its
+      # rust-analyzer); the workspace is the directory just is called from.
+      - name: Index RegelRecht
+        working-directory: target-workspace/packages
+        run: just -f "$GITHUB_WORKSPACE/tools/code-guide/justfile" index
+      - name: The index is fresh and yields functions and calls
+        working-directory: target-workspace/packages
+        run: |
+          just -f "$GITHUB_WORKSPACE/tools/code-guide/justfile" stats | tee /tmp/stats.txt
+          grep -q 'index: Fresh' /tmp/stats.txt
+          python3 -c "import json,sys; t=open('/tmp/stats.txt').read(); d=json.loads(t[t.index('{'):]); sys.exit(0 if d['functions']>100 and d['calls']>100 else 1)"

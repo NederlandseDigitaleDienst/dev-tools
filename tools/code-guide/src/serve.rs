@@ -3,7 +3,7 @@
 //! The model is built from the cached index on the first request and rebuilt
 //! when the index or any source file changes (a fingerprint of every path and
 //! its modification time, so a removed or renamed file counts too); a fresh
-//! `just code-guide-index`, or an edit, shows on the next request. Its
+//! `code-guide index`, or an edit, shows on the next request. Its
 //! `generation` in `/api/status` tells the app to load its views again. A
 //! source edited after indexing is reported as stale rather than misread: its
 //! calls stay as indexed, and its functions and types are found again in the
@@ -29,9 +29,20 @@ use crate::model::Model;
 use crate::views::Views;
 use crate::workspace::Workspace;
 
-/// Default port: next to the architecture explorer's 7180, inside the dev
-/// container's forwarded 7100-7300 range.
+/// Default port; `CODE_GUIDE_PORT` or `--port` choose another.
 const DEFAULT_PORT: u16 = 7190;
+
+/// The address the server listens on: this machine only, since it serves the
+/// workspace's source. `CODE_GUIDE_HOST=0.0.0.0` makes it reachable from outside,
+/// e.g. so a container can publish the port.
+fn host() -> Result<std::net::IpAddr, String> {
+    match std::env::var("CODE_GUIDE_HOST") {
+        Ok(h) => h
+            .parse()
+            .map_err(|_| format!("CODE_GUIDE_HOST is not an IP address: {h}")),
+        Err(_) => Ok(std::net::IpAddr::from([127, 0, 0, 1])),
+    }
+}
 
 struct Loaded {
     stamp: (Option<SystemTime>, Option<SystemTime>, u64),
@@ -54,10 +65,13 @@ pub fn run(ws: Workspace, port: Option<u16>, ui_dir: Option<PathBuf>) -> Result<
                 .and_then(|v| v.parse().ok())
         })
         .unwrap_or(DEFAULT_PORT);
-    let ui_dir = ui_dir.unwrap_or_else(|| ws.paths.workspace.join("code-guide/ui/dist"));
+    // The UI is built next to this crate (`ui/dist`); `--ui-dir` points
+    // elsewhere, e.g. for a binary installed away from its sources.
+    let ui_dir =
+        ui_dir.unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/ui/dist")));
     if !ui_dir.join("index.html").exists() {
         eprintln!(
-            "code-guide: no built UI at {}; run `just code-guide`, which builds it first",
+            "code-guide: no built UI at {}; run `just serve`, which builds it first",
             ui_dir.display()
         );
     }
@@ -79,11 +93,11 @@ pub fn run(ws: Workspace, port: Option<u16>, ui_dir: Option<PathBuf>) -> Result<
             .route("/api/source", get(source))
             .with_state(state)
             .fallback_service(ServeDir::new(&ui_dir).not_found_service(ServeFile::new(index)));
-        let addr = SocketAddr::from(([0, 0, 0, 0], port));
+        let addr = SocketAddr::new(host()?, port);
         let listener = tokio::net::TcpListener::bind(addr)
             .await
             .map_err(|e| format!("binding {addr}: {e}"))?;
-        eprintln!("code-guide: listening on http://0.0.0.0:{port}  (open http://localhost:{port})");
+        eprintln!("code-guide: listening on http://{addr}  (open http://localhost:{port})");
         axum::serve(listener, app)
             .await
             .map_err(|e| format!("server: {e}"))
@@ -135,7 +149,7 @@ async fn model(state: &Arc<AppState>) -> Result<Arc<Model>, Response> {
             StatusCode::SERVICE_UNAVAILABLE,
             format!(
                 "No index yet. Run `{}` to build it.",
-                index::REBUILD_COMMAND
+                index::rebuild_command()
             ),
         ));
     }
@@ -165,7 +179,7 @@ async fn model(state: &Arc<AppState>) -> Result<Arc<Model>, Response> {
 #[serde(rename_all = "camelCase")]
 struct Status {
     index: IndexState,
-    command: &'static str,
+    command: String,
     counts: Option<crate::model::Counts>,
     /// Which build of the model the counts are from; see [`Loaded::generation`].
     generation: Option<u64>,
@@ -202,7 +216,7 @@ async fn status(State(state): State<Arc<AppState>>) -> Response {
     });
     json(&Status {
         index: index_state,
-        command: index::REBUILD_COMMAND,
+        command: index::rebuild_command(),
         counts,
         generation,
         message,

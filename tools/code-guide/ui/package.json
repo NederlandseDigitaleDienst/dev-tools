@@ -1,16 +1,18 @@
 {
-  "name": "regelrecht-code-guide",
+  "name": "code-guide",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Code guide (Vue 3 + the NLDD design system) for the regelrecht Rust workspace, layered by method calls resolved by rust-analyzer. Served by `code-guide serve` / `just code-guide`.",
+  "description": "Code guide (Vue 3 + the NLDD design system): a Rust workspace's crates, modules, types and functions, and the calls between them as rust-analyzer resolves them. Served by `code-guide serve`.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "nldd:imports": "node ../../../script/check-nldd-imports.mjs src src/nldd-components.js --write",
-    "nldd:check": "node ../../../script/check-nldd-imports.mjs src src/nldd-components.js"
+    "nldd:imports": "node scripts/check-nldd-imports.mjs src src/nldd-components.js --write",
+    "nldd:check": "node scripts/check-nldd-imports.mjs src src/nldd-components.js",
+    "nldd:slots": "node scripts/check-nldd-slots.mjs src",
+    "test:scripts": "node --test scripts/nldd-imports.test.mjs scripts/nldd-slots.test.mjs"
   },
   "dependencies": {
     "@nldd/design-system": "^0.8.88",

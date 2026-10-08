@@ -1,0 +1,14 @@
+# Build output and dependencies, per tool. Gebouwde UI-uitvoer bevat de
+# lettertypes van de rijkshuisstijl en hoort niet in de repository (REUSE.toml).
+target/
+node_modules/
+dist/
+
+# Git worktrees
+.worktrees/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

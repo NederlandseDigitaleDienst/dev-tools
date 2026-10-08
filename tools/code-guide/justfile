@@ -1,0 +1,42 @@
+# code-guide: every recipe runs from this folder. See README.md.
+
+# List the recipes.
+default:
+    @just --list
+
+# Every test: the Rust crate, the UI and the UI's check scripts.
+test:
+    cargo test
+    cd ui && npm ci --ignore-scripts && npm test && npm run test:scripts
+
+# Formatting, clippy, and the design-system import and slot checks.
+lint:
+    cargo fmt --check
+    cargo clippy --all-targets -- -D warnings
+    cd ui && npm ci --ignore-scripts && npm run nldd:check && npm run nldd:slots
+
+# Dependency licences, sources and advisories (needs cargo-deny).
+deny:
+    cargo deny check
+
+# Build the UI and the release binary.
+build:
+    cd ui && npm ci --ignore-scripts && npm run build
+    cargo build --release
+
+# Index a workspace: its Cargo.toml, relative to where you run just (default: the one there).
+index manifest="Cargo.toml" *args="":
+    cargo run --release -- index --manifest-path "{{ join(invocation_directory(), manifest) }}" {{ args }}
+
+# Rebuild the index even when it matches the sources (as for `index`).
+reindex manifest="Cargo.toml":
+    cargo run --release -- index --force --manifest-path "{{ join(invocation_directory(), manifest) }}"
+
+# What the index yields: functions, types, calls, what was left out (as for `index`).
+stats manifest="Cargo.toml":
+    cargo run --release -- stats --manifest-path "{{ join(invocation_directory(), manifest) }}"
+
+# Build the UI and serve the guide for a workspace (as for `index`) on http://localhost:7190.
+serve manifest="Cargo.toml":
+    cd ui && npm ci --ignore-scripts && npm run build
+    cargo run --release -- serve --manifest-path "{{ join(invocation_directory(), manifest) }}"

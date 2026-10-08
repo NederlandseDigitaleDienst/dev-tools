@@ -213,7 +213,7 @@ function install(overrides = {}) {
     const u = String(url);
     const route = u.split('?')[0];
     if (overrides[route]) return overrides[route](u);
-    if (route === 'api/status') return json({ index: { state: 'fresh' }, command: 'just code-guide-index', counts: { staleFiles: [] } });
+    if (route === 'api/status') return json({ index: { state: 'fresh' }, command: 'just -f /tools/code-guide/justfile index', counts: { staleFiles: [] } });
     if (route === 'api/workspace') return json(workspace);
     if (route === 'api/crate') return params(u).name === 'engine' ? json(crateView) : failure(404, 'no crate');
     if (route === 'api/type') return json(typeView);
@@ -420,21 +420,21 @@ describe('the index', () => {
   it('names the files that changed since it was built', async () => {
     install({
       'api/status': () =>
-        json({ index: { state: 'stale' }, command: 'just code-guide-index', counts: { staleFiles: ['engine/src/a.rs'] } }),
+        json({ index: { state: 'stale' }, command: 'just -f /tools/code-guide/justfile index', counts: { staleFiles: ['engine/src/a.rs'] } }),
     });
     await open('#/engine');
     const banner = pane('main').find('nldd-banner');
     expect(banner.attributes('supporting-text')).toContain('engine/src/a.rs');
-    expect(banner.attributes('supporting-text')).toContain('just code-guide-index');
+    expect(banner.attributes('supporting-text')).toContain('just -f /tools/code-guide/justfile index');
   });
 
   it('loads every view again once an index is built while the page is open', async () => {
     vi.useFakeTimers({ toFake: ['setInterval'] });
     try {
-      const missing = { index: { state: 'missing' }, command: 'just code-guide-index', counts: null, generation: null };
+      const missing = { index: { state: 'missing' }, command: 'just -f /tools/code-guide/justfile index', counts: null, generation: null };
       install({
         'api/status': () => json(missing),
-        'api/workspace': () => failure(503, 'No index yet. Run `just code-guide-index` to build it.'),
+        'api/workspace': () => failure(503, 'No index yet. Run `just -f /tools/code-guide/justfile index` to build it.'),
         'api/crate': () => failure(503, 'No index yet.'),
       });
       await open('#/engine');
@@ -442,7 +442,7 @@ describe('the index', () => {
       // The index is built; the next status poll reports the new model.
       install({
         'api/status': () =>
-          json({ index: { state: 'fresh' }, command: 'just code-guide-index', counts: { staleFiles: [] }, generation: 1 }),
+          json({ index: { state: 'fresh' }, command: 'just -f /tools/code-guide/justfile index', counts: { staleFiles: [] }, generation: 1 }),
       });
       vi.advanceTimersByTime(30_000);
       await flushPromises();
@@ -459,7 +459,7 @@ describe('the index', () => {
   it('says in the source viewer when the file shown changed after indexing', async () => {
     install({
       'api/status': () =>
-        json({ index: { state: 'stale' }, command: 'just code-guide-index', counts: { staleFiles: ['engine/src/service.rs'] } }),
+        json({ index: { state: 'stale' }, command: 'just -f /tools/code-guide/justfile index', counts: { staleFiles: ['engine/src/service.rs'] } }),
     });
     await open('#/engine/service/Service/run');
     expect(pane('inspector').find('nldd-banner[text="This file changed after indexing"]').exists()).toBe(true);
@@ -468,7 +468,7 @@ describe('the index', () => {
   });
 
   it('says how to build it when there is none', async () => {
-    install({ 'api/status': () => json({ index: { state: 'missing' }, command: 'just code-guide-index', counts: null }) });
+    install({ 'api/status': () => json({ index: { state: 'missing' }, command: 'just -f /tools/code-guide/justfile index', counts: null }) });
     await open('#/');
     expect(pane('main').find('nldd-banner').attributes('text')).toBe('There is no rust-analyzer index yet');
   });

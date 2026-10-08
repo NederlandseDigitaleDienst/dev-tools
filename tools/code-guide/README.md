@@ -1,7 +1,6 @@
 # code-guide
 
-A guide to the regelrecht Rust workspace for someone finding their way around
-it. It shows the crates, their modules, types and functions, and how they call
+A guide to a Rust workspace for someone finding their way around it. It shows the crates, their modules, types and functions, and how they call
 each other: crates and modules in reading order (what others build on first),
 each type with its methods, signatures and doc comments, and for every function
 the functions that call it and the functions it calls, in any crate.
@@ -10,20 +9,36 @@ Every relation in the guide is a call, as rust-analyzer resolved it. Nothing in
 it is written for the guide: names, doc comments and signatures come from the
 code, and where a doc comment is missing the guide says so.
 
-This is a developer tool, a tooling-only workspace member. It is not deployed.
+## Use
+
+It needs Rust (the version in `rust-toolchain.toml`, installed by rustup on
+first use), the rust-analyzer component (`rustup component add
+rust-analyzer`), Node.js 22 for the UI, and [just](https://just.systems).
+
+From the directory of the workspace to describe (where its `Cargo.toml` is):
 
 ```bash
-just code-guide-index   # build the rust-analyzer index (about a minute)
-just code-guide         # build the UI and serve it on http://localhost:7190
+just -f <path to this folder>/justfile index   # build the index (about a minute for a large workspace)
+just -f <path to this folder>/justfile serve   # build the UI and serve it on http://localhost:7190
 ```
+
+Or from this folder, naming the workspace: `just index ../../my-project/Cargo.toml`
+and `just serve ../../my-project/Cargo.toml`. Without a path both describe this
+tool itself. Set `CODE_GUIDE_PORT` for another port.
+
+The guide reads the workspace and writes only its index, under the workspace's
+target dir. It does not change the code it describes. The server shows the
+workspace's source, so it listens on this machine only (`127.0.0.1`); set
+`CODE_GUIDE_HOST=0.0.0.0` to reach it from outside, for instance to publish the
+port of a container, and only where no untrusted network can reach it.
 
 ## The index
 
 `code-guide index` runs `rust-analyzer scip` over the workspace and writes a
 [SCIP](https://github.com/scip-code/scip) index to
 `<target dir>/code-guide/<workspace id>/index.scip`, the id a hash of the
-workspace's path: `just dev-setup` gives every worktree the same target dir, and
-each worktree needs an index of its own. Next to it go the source scan taken in
+workspace's path: several checkouts (git worktrees) can share one target dir,
+and each needs an index of its own. Next to it go the source scan taken in
 the same run (`index.sources.json`, see below) and a manifest (`index.json`): a
 cache key and a hash per input file. A run removes the manifest first and writes
 it last, each file swapped in whole, so a run cut short leaves no index at all
@@ -31,17 +46,16 @@ rather than one that looks complete. It needs the
 rust-analyzer component (`rustup component add rust-analyzer`).
 
 - **When it runs.** Only on request. A run takes about a minute and several GB
-  of memory for this workspace, so the server never starts one; it says when the
+  of memory for a large workspace, so the server never starts one; it says when the
   index is missing or stale and which command rebuilds it.
 - **Cached.** The key is a hash of every Rust source and Cargo manifest of the
   workspace, `Cargo.lock`, the rust-analyzer version and the configuration it
-  indexes with. When the key matches, `index` does nothing (`--force` rebuilds
+  indexes with. When the key matches, `index` does nothing (`just reindex` rebuilds
   anyway). Two runs over the same inputs give a byte-identical index, so a
-  cached one is as good as a fresh one. This crate's own sources are not part of
-  the key: the guide leaves itself out, so editing it does not need a new index.
-- **All features.** rust-analyzer indexes with every Cargo feature on. The
-  engine's `wasm` module exists only with its feature, and without it every call
-  made from there would be missing.
+  cached one is as good as a fresh one.
+- **All features.** rust-analyzer indexes with every Cargo feature on. A module
+  that exists only with a feature (a `wasm` binding, say) would otherwise be
+  missing, with every call made from it.
 - **Stale sources.** The guide never reads the index's line numbers against an
   edited file: calls are placed with the source scan stored with the index, so
   after an edit they are still the calls as indexed. The manifest names which
@@ -174,11 +188,9 @@ rebuilt model, since node numbers from an older build name other functions.
 
 ## The app
 
-`ui/` is a standalone Vite + Vue 3 app (its own `package.json`, not part of the
-root npm workspace), built from the NLDD design system like the other
-frontends. Addresses hold everything that is open: `#/` (all crates),
-`#/engine`, `#/engine/service`, `#/engine/service/LawExecutionService` and
-`…/evaluate_law`, with `~` for the crate root and for the `:` of a binary root
+`ui/` is a Vite + Vue 3 app built from the NLDD design system. Addresses hold
+everything that is open: `#/` (all crates), `#/engine`, `#/engine/service`,
+`#/engine/service/Service` and `…/evaluate`, with `~` for the crate root and for the `:` of a binary root
 (`bin~evaluate`). After `?`: `view=graph` with the graph's options
 (`level`, `calls`, `depth`, `layout`, `spacing`), and `source=wide`.
 
@@ -225,9 +237,10 @@ loses the link.
 
 ## Tests
 
-`just code-guide-test` runs both sides.
+`just test` runs both sides; `just lint` adds formatting, clippy and the
+design-system checks, `just deny` the dependency licences.
 
-- Rust (`cargo test -p regelrecht-code-guide`): the cache key and the list of
+- Rust (`cargo test`): the cache key and the list of
   changed files; the source scan (extents, every form of test code, `use`
   items, module paths); the model on synthetic SCIP indexes (every symbol shape,
   calls placed by extent, test code, imports and nested items left out,
@@ -243,3 +256,22 @@ loses the link.
   elements.
 
 None of these needs rust-analyzer or an index.
+
+## Licences
+
+The tool is EUPL-1.2, like the rest of this repository.
+
+- **Rust dependencies** are checked by `cargo deny` (`deny.toml`): MIT,
+  Apache-2.0 (also WITH LLVM-exception), BSD, ISC, Unicode-3.0, BSL-1.0,
+  Unlicense, Zlib and EUPL-1.2.
+- **npm dependencies of the UI** that end up in the built page: MIT, ISC,
+  BSD-2-Clause and BSD-3-Clause, `dompurify` (MPL-2.0 OR Apache-2.0), and the
+  NLDD design system (EUPL-1.2).
+- **Fonts.** The design system bundles two typefaces, and both end up in the
+  built UI only (`ui/dist/`), which is not in the repository. RijksSansWeb is
+  part of the Rijkshuisstijl, on which the State has made a copyright
+  reservation (Stcrt. 2008, nr. 115). JetBrains Mono is under the SIL Open Font
+  License 1.1, which requires its licence to travel with it. Publishing built
+  output, such as a release with the UI inside, needs both settled first.
+- **The design-system checks** in `ui/scripts/` are copied from the RegelRecht
+  repository (https://github.com/MinBZK/regelrecht, `script/`), EUPL-1.2.

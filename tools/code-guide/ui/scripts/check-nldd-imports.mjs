@@ -1,0 +1,71 @@
+// Copied from the RegelRecht repository (https://github.com/MinBZK/regelrecht,
+// script/), EUPL-1.2.
+//
+// Fails the build when a site's per-component design-system imports have
+// drifted from the nldd-* tags its source actually uses.
+//
+// Without this, adding a component to a template is silent: the tag renders as
+// an unknown element, never upgrades, and the FOUC guard holds the page hidden
+// until its 200ms fallback. That is a lot harder to spot than a failing build.
+//
+//   node scripts/check-nldd-imports.mjs <source-dir> <imports-file> [--write]
+//
+// --write regenerates the imports file instead of failing.
+
+import { readFileSync, writeFileSync } from 'node:fs';
+import { EXTENSIONS, packageEntries, usedTags, resolveUsage } from './nldd-imports.mjs';
+
+const [sourceDir, importsFile, ...flags] = process.argv.slice(2);
+if (!sourceDir || !importsFile) {
+  console.error('usage: check-nldd-imports.mjs <source-dir> <imports-file> [--write]');
+  process.exit(2);
+}
+
+// The generated file lives inside the tree it is generated from, so the scan
+// re-reads it. It contributes nothing because every line quotes
+// '@nldd/design-system/x' — the quote is followed by @, never by nldd-.
+const HEADER = `// Design-system components this app renders, one entry point each.
+// The package root would pull in all ~110 components; this list is generated
+// from the nldd-* tags in the source and checked on every build by
+// script/check-nldd-imports.mjs, so a newly used component fails the build
+// instead of silently never upgrading.
+//
+// A component this app only names in prose (markdown inline code) is absent
+// here on purpose: such a name has to exist, not to be imported.
+//
+// Regenerate: npm run nldd:imports
+`;
+
+const { needed, unknown } = resolveUsage(usedTags(sourceDir, EXTENSIONS), packageEntries());
+
+if (unknown.length > 0) {
+  console.error(`✗ ${sourceDir}: no design-system entry point defines these tags:`);
+  for (const tag of unknown) console.error(`    nldd-${tag}`);
+  console.error('  The tag is a typo, the prose naming it is stale, or the package');
+  console.error('  needs a new entry point.');
+  process.exit(1);
+}
+
+const expected = HEADER + needed.map((e) => `import '@nldd/design-system/${e}';`).join('\n') + '\n';
+
+if (flags.includes('--write')) {
+  writeFileSync(importsFile, expected);
+  console.log(`✓ wrote ${needed.length} imports to ${importsFile}`);
+  process.exit(0);
+}
+
+const actual = readFileSync(importsFile, 'utf8');
+if (actual === expected) {
+  console.log(`✓ ${importsFile}: ${needed.length} imports, in sync with ${sourceDir}`);
+  process.exit(0);
+}
+
+const has = new Set([...actual.matchAll(/@nldd\/design-system\/([a-z0-9-]+)/g)].map((m) => m[1]));
+const missing = needed.filter((e) => !has.has(e));
+const extra = [...has].filter((e) => !needed.includes(e));
+
+console.error(`✗ ${importsFile} is out of date.`);
+if (missing.length) console.error(`  used but not imported: ${missing.join(', ')}`);
+if (extra.length) console.error(`  imported but unused:   ${extra.join(', ')}`);
+console.error('  Run: npm run nldd:imports');
+process.exit(1);

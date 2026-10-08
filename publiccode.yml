@@ -1,0 +1,80 @@
+---
+# Describes this repository for public-sector software catalogs.
+# Standard: https://yml.publiccode.tools
+publiccodeYmlVersion: '0.4'
+
+name: Developer tools
+url: https://github.com/NederlandseDigitaleDienst/dev-tools
+
+releaseDate: 2026-10-08
+developmentStatus: development
+softwareType: standalone/other
+platforms:
+  - linux
+  - mac
+  - windows
+
+categories:
+  - it-development
+
+intendedAudience:
+  countries:
+    - nl
+  scope:
+    - government
+
+description:
+  nl:
+    shortDescription: >-
+      Losstaande hulpmiddelen voor ontwikkelaars, waaronder een gids door een
+      Rust-workspace op basis van de aanroepen die rust-analyzer oplost.
+    longDescription: |
+      Deze repository bevat hulpmiddelen voor ontwikkelaars die de Nederlandse
+      Digitale Dienst maakte bij het werken aan projecten zoals RegelRecht. Ze
+      zijn generiek: geen enkel hulpmiddel hangt af van een bepaald project,
+      en geen project hangt ervan af.
+
+      Elk hulpmiddel staat op zichzelf, in een eigen map met een eigen build,
+      eigen afhankelijkheden, tests en releases, in welke taal dan ook.
+
+      De codegids beschrijft een Rust-workspace: de crates, modules, types en
+      functies, en de aanroepen daartussen zoals rust-analyzer ze oplost, met
+      een interactieve aanroepgraaf. Alles in de gids komt uit de code zelf,
+      zodat hij klopt met de code die er staat.
+    features:
+      - Codegids voor een Rust-workspace, gebouwd op rust-analyzer
+      - Interactieve aanroepgraaf met paden, lagen en layouts
+  en:
+    shortDescription: >-
+      Standalone developer tools, among them a guide to a Rust workspace built
+      on the calls rust-analyzer resolves.
+    longDescription: |
+      This repository holds developer tools the Nederlandse Digitale Dienst
+      made while working on projects such as RegelRecht. They are generic: no
+      tool depends on a particular project, and no project depends on them.
+
+      Every tool is standalone, in a folder of its own with its own build,
+      dependencies, tests and releases, in whatever language suits it.
+
+      The code guide describes a Rust workspace: its crates, modules, types
+      and functions, and the calls between them as rust-analyzer resolves
+      them, with an interactive call graph. Everything in the guide comes from
+      the code itself, so it matches the code that is there.
+    features:
+      - Code guide for a Rust workspace, built on rust-analyzer
+      - Interactive call graph with paths, layers and layouts
+
+legal:
+  license: EUPL-1.2
+  mainCopyrightOwner: Staat der Nederlanden (Ministerie van Economische Zaken en Klimaat)
+  repoOwner: Nederlandse Digitale Dienst
+
+maintenance:
+  type: internal
+  contacts:
+    - name: Nederlandse Digitale Dienst
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en

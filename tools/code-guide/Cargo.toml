@@ -1,18 +1,18 @@
-# regelrecht-code-guide — a guide to the Rust workspace, built on rust-analyzer.
+# code-guide — a guide to a Rust workspace, built on rust-analyzer.
 #
-# A developer tool (a tooling-only workspace member), not part of the product.
-# `code-guide index` has rust-analyzer write a SCIP index of the workspace and
+# A standalone tool: its own workspace, lockfile and toolchain, independent of
+# the other tools in this repository and of the workspace it describes.
+# `code-guide index` has rust-analyzer write a SCIP index of a workspace and
 # caches it; `code-guide serve` turns the index into crates, modules, types and
 # the calls between their functions, and serves the app in `ui/`. See README.md.
 [package]
-name = "regelrecht-code-guide"
+name = "code-guide"
 version = "0.1.0"
 edition = "2021"
-authors = ["MinBZK <noreply@minbzk.nl>"]
-description = "A guide to the regelrecht Rust workspace, layered by method calls resolved by rust-analyzer"
+description = "A guide to a Rust workspace, layered by the calls between its functions as rust-analyzer resolves them"
 license = "EUPL-1.2"
-repository = "https://github.com/MinBZK/regelrecht"
-homepage = "https://github.com/MinBZK/regelrecht"
+repository = "https://github.com/NederlandseDigitaleDienst/dev-tools"
+homepage = "https://github.com/NederlandseDigitaleDienst/dev-tools/tree/main/tools/code-guide"
 publish = false
 
 [[bin]]
@@ -30,13 +30,19 @@ cargo_metadata = "0.23"
 syn = { version = "3", features = ["full", "visit", "parsing"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
-sha2.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-walkdir.workspace = true
-axum.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-tower-http = { workspace = true, features = ["fs"] }
+sha2 = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+walkdir = "2"
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tower-http = { version = "0.7", features = ["fs"] }
 
-[lints]
-workspace = true
+[lints.clippy]
+# A tool that crashes reports nothing useful: errors are returned and shown.
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+
+# A workspace of its own, so it never joins a workspace it happens to sit in.
+[workspace]
