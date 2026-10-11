@@ -1,5 +1,5 @@
-// Copied from the RegelRecht repository (https://github.com/MinBZK/regelrecht,
-// script/), EUPL-1.2.
+// Copied from the RegelRecht repository
+// (https://github.com/NederlandseDigitaleDienst/regelrecht, script/), EUPL-1.2.
 //
 // Doet de slot-guard wat hij belooft: een slot die het component niet heeft
 // wordt gevonden, en alles wat legitiem is blijft ongemoeid.

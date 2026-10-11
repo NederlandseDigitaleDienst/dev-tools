@@ -1,7 +1,8 @@
 # Developer tools
 
 Tools for developers, made by the Nederlandse Digitale Dienst while working on
-projects such as [RegelRecht](https://github.com/MinBZK/regelrecht). They are
+projects such as
+[RegelRecht](https://github.com/NederlandseDigitaleDienst/regelrecht). They are
 generic: none of them depends on a particular project, and no project depends
 on them.
 
