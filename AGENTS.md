@@ -5,7 +5,8 @@ Cursor, Claude Code and others). This file is the source; `CLAUDE.md` only
 imports it, because Claude Code reads that name. Edit this file, not that one.
 
 Several sections are taken over from the RegelRecht repository
-(https://github.com/MinBZK/regelrecht), where these tools started.
+(https://github.com/NederlandseDigitaleDienst/regelrecht), where these tools
+started.
 
 ## Skills
 
@@ -105,9 +106,10 @@ not patch around a misunderstanding in a fixture.
 ## Frontend / UI Components
 
 **All user interface MUST be built with components from the NLDD design
-system** (`@nldd/design-system`, https://github.com/MinBZK/storybook). Do not
-hand-roll custom UI elements when a design-system component exists. For the
-required component hierarchy, nesting rules, and layout patterns, use the
+system** (`@nldd/design-system`,
+https://github.com/NederlandseDigitaleDienst/design-system). Do not hand-roll
+custom UI elements when a design-system component exists. For the required
+component hierarchy, nesting rules, and layout patterns, use the
 `storybook-component-hierarchy` skill.
 
 The element prefix is `nldd-`, with two l's. Check an attribute against the

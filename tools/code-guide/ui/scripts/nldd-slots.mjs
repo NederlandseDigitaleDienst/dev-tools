@@ -1,5 +1,5 @@
-// Copied from the RegelRecht repository (https://github.com/MinBZK/regelrecht,
-// script/), EUPL-1.2.
+// Copied from the RegelRecht repository
+// (https://github.com/NederlandseDigitaleDienst/regelrecht, script/), EUPL-1.2.
 //
 // Which slots each nldd-* component actually defines, and which ones a source
 // tree assigns to. Shared by check-nldd-slots.mjs and its test.

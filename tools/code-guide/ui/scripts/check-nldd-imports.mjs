@@ -1,5 +1,5 @@
-// Copied from the RegelRecht repository (https://github.com/MinBZK/regelrecht,
-// script/), EUPL-1.2.
+// Copied from the RegelRecht repository
+// (https://github.com/NederlandseDigitaleDienst/regelrecht, script/), EUPL-1.2.
 //
 // Fails the build when a site's per-component design-system imports have
 // drifted from the nldd-* tags its source actually uses.

@@ -1,5 +1,5 @@
-// Copied from the RegelRecht repository (https://github.com/MinBZK/regelrecht,
-// script/), EUPL-1.2.
+// Copied from the RegelRecht repository
+// (https://github.com/NederlandseDigitaleDienst/regelrecht, script/), EUPL-1.2.
 //
 // De guard die de per-component imports bij de gebruikte tags houdt, leest de
 // bron met twee reguliere expressies: de markup-vorm, en de naam tussen quotes

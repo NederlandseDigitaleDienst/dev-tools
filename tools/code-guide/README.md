@@ -274,4 +274,5 @@ The tool is EUPL-1.2, like the rest of this repository.
   License 1.1, which requires its licence to travel with it. Publishing built
   output, such as a release with the UI inside, needs both settled first.
 - **The design-system checks** in `ui/scripts/` are copied from the RegelRecht
-  repository (https://github.com/MinBZK/regelrecht, `script/`), EUPL-1.2.
+  repository (https://github.com/NederlandseDigitaleDienst/regelrecht,
+  `script/`), EUPL-1.2.

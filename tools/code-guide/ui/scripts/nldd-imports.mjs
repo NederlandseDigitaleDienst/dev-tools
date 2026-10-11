@@ -1,5 +1,5 @@
-// Copied from the RegelRecht repository (https://github.com/MinBZK/regelrecht,
-// script/), EUPL-1.2.
+// Copied from the RegelRecht repository
+// (https://github.com/NederlandseDigitaleDienst/regelrecht, script/), EUPL-1.2.
 //
 // Which @nldd/design-system entry points does a source tree actually need?
 //
