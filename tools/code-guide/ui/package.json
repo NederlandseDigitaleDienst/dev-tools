@@ -15,7 +15,7 @@
     "test:scripts": "node --test scripts/nldd-imports.test.mjs scripts/nldd-slots.test.mjs"
   },
   "dependencies": {
-    "@nldd/design-system": "^0.8.88",
+    "@nldd/design-system": "^0.8.96",
     "cytoscape": "^3.34.3",
     "cytoscape-dagre": "^4.0.1",
     "cytoscape-fcose": "^2.2.0",
@@ -24,11 +24,11 @@
     "vue": "^3.5.43"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.9",
+    "@vitejs/plugin-vue": "^6.0.10",
     "@vue/test-utils": "^2.5.1",
-    "happy-dom": "^20.14.5",
+    "happy-dom": "^20.14.6",
     "jsdom": "^30.1.2",
-    "vite": "^8.3.2",
+    "vite": "^8.3.4",
     "vitest": "^5.0.3"
   }
 }
