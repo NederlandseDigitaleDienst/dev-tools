@@ -15,20 +15,20 @@
     "test:scripts": "node --test scripts/nldd-imports.test.mjs scripts/nldd-slots.test.mjs"
   },
   "dependencies": {
-    "@nldd/design-system": "^0.8.88",
-    "cytoscape": "^3.34.3",
-    "cytoscape-dagre": "^4.0.1",
+    "@nldd/design-system": "^0.24.0",
+    "cytoscape": "^3.35.0",
+    "cytoscape-dagre": "^4.1.0",
     "cytoscape-fcose": "^2.2.0",
-    "dompurify": "^3.4.16",
-    "marked": "^18.1.0",
-    "vue": "^3.5.43"
+    "dompurify": "^3.4.18",
+    "marked": "^18.2.0",
+    "vue": "^3.5.45"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.9",
+    "@vitejs/plugin-vue": "^6.0.11",
     "@vue/test-utils": "^2.5.1",
     "happy-dom": "^20.14.5",
     "jsdom": "^30.1.2",
-    "vite": "^8.3.2",
-    "vitest": "^5.0.3"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
   }
 }
